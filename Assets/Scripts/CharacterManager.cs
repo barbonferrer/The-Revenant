@@ -11,7 +11,7 @@ public class CharacterManager : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask wallLayer;
     bool canSwitch = true;
-    bool isGhost = false;
+    public bool isGhost = false;
     private float horizontalInput;
     private Rigidbody2D bodyAvatar;
     private BoxCollider2D boxColliderAvatar;
@@ -19,7 +19,7 @@ public class CharacterManager : MonoBehaviour
     private Rigidbody2D bodyGhost;
     private BoxCollider2D boxColliderGhost;
     private Animator animGhost;
-
+    private Renderer ghostVisible;
     private Rigidbody2D cBody;
     private BoxCollider2D cBoxCollider;
     private Animator cAnim;
@@ -35,7 +35,8 @@ public class CharacterManager : MonoBehaviour
         bodyGhost = ghost.GetComponent<Rigidbody2D>();
         animGhost = ghost.GetComponent<Animator>();
         boxColliderGhost = ghost.GetComponent<BoxCollider2D>();
-
+        ghostVisible = ghost.GetComponent<SpriteRenderer>();
+        ghostVisible.enabled = false;
         cBody = bodyAvatar;
         cBoxCollider = boxColliderAvatar;
         cAnim = animAvatar;
@@ -49,21 +50,24 @@ public class CharacterManager : MonoBehaviour
         }
 
         //Read whether left alt is pressed and change the value of isGhost accordingly
-        if (canSwitch && Input.GetKey(KeyCode.LeftAlt))
+        if (canSwitchCharacter() && canSwitch && Input.GetKey(KeyCode.LeftAlt))
         {
             isGhost = !isGhost;
-            Debug.Log("isGhost " + isGhost);
             if (!isGhost)
             {
                 cBody = bodyAvatar;
                 cBoxCollider = boxColliderAvatar;
                 cAnim = animAvatar;
+                ghostVisible.enabled = false;
             }
             else
             {
+                //Set position of the ghost to right in front of the avatar
                 cBody = bodyGhost;
                 cBoxCollider = boxColliderGhost;
                 cAnim = animGhost;
+                bodyGhost.transform.position = bodyAvatar.position;
+                ghostVisible.enabled = true;
             }
             canSwitch = false;
         }
@@ -103,7 +107,12 @@ public class CharacterManager : MonoBehaviour
                 cBody.velocity = Vector2.zero;
             }
             else
-                cBody.gravityScale = 3;
+            {
+                if (!isGhost)
+                {
+                    cBody.gravityScale = 3;
+                }
+            }
 
             if (Input.GetKey(KeyCode.Space))
             {
@@ -112,11 +121,31 @@ public class CharacterManager : MonoBehaviour
         }
         else
             wallJumpCooldown += Time.deltaTime;
+        if (isGhost)
+        {
+            if (Input.GetKey(KeyCode.W))
+                bodyGhost.velocity = new Vector2(bodyGhost.velocity.x, jumpPower);
+            
+            if (Input.GetKeyUp(KeyCode.W)) 
+                bodyGhost.velocity = new Vector2(bodyGhost.velocity.x, 0);
+
+            if (Input.GetKey(KeyCode.S))
+                bodyGhost.velocity = new Vector2(bodyGhost.velocity.x, -jumpPower);
+            
+            if (Input.GetKeyUp(KeyCode.S))
+                bodyGhost.velocity = new Vector2(bodyGhost.velocity.x, 0);
+
+
+
+        }
     }
 
     bool canSwitchCharacter()
     {
-        return true;
+        if (bodyAvatar.velocity.magnitude != 0)
+            return false;
+        else
+            return true;
     }
 
     private void Jump(Transform character)
