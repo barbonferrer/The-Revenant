@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Levels/Jferrer_TestScene.unity
+    guid: 6dbedb9f285f1dc45ac43f4928475285
+  - enabled: 1
     path: Assets/Levels/Level1.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   m_configObjects: {}
